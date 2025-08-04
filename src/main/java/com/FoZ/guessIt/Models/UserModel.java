@@ -1,6 +1,7 @@
 package com.FoZ.guessIt.Models;
 
 import com.FoZ.guessIt.Enumerations.AuthProvider;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -35,12 +36,15 @@ public class UserModel {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @JsonIgnore
     private boolean accountVerified = false;
 
     @Column(name = "created_at", updatable = false)
+    @JsonIgnore
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
+    @JsonIgnore
     private LocalDateTime updatedAt;
 
     @PrePersist
