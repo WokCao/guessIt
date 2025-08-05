@@ -2,6 +2,7 @@ package com.FoZ.guessIt.Configuration;
 
 import com.FoZ.guessIt.ExceptionHandling.CustomizedAccessDeniedHandler;
 import com.FoZ.guessIt.ExceptionHandling.CustomizedBasicAuthenticationEntryPoint;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -13,20 +14,44 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @Profile("prod")
 public class ProdSecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.redirectToHttps(Customizer.withDefaults())
+        http
+//                .sessionManagement((sessionManagement) -> sessionManagement
+//                        .maximumSessions(1)
+//                        .maxSessionsPreventsLogin(true))
+                .redirectToHttps(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors((cors) -> cors
+                        .configurationSource(new CorsConfigurationSource() {
+                            @Override
+                            public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                                CorsConfiguration config = new CorsConfiguration();
+                                config.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
+                                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                                config.setAllowCredentials(true);
+                                config.setAllowedHeaders(Collections.singletonList("*"));
+                                config.setMaxAge(3600L);
+                                return config;
+                            }
+                        }))
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/api/v1/authentication/**", "/api/v1/registration/**").permitAll()
                         .requestMatchers("/api/v1/dictionary/**").authenticated());
         http.formLogin(AbstractHttpConfigurer::disable);
-        http.httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomizedBasicAuthenticationEntryPoint()));
-        http.exceptionHandling(ehc -> ehc.accessDeniedHandler(new CustomizedAccessDeniedHandler()));
+        http.httpBasic((hbc) -> hbc
+                .authenticationEntryPoint(new CustomizedBasicAuthenticationEntryPoint()));
+        http.exceptionHandling((ehc) -> ehc
+                .accessDeniedHandler(new CustomizedAccessDeniedHandler()));
         return http.build();
     }
 
