@@ -3,7 +3,7 @@ package com.FoZ.guessIt.DTOs;
 import lombok.Data;
 
 @Data
-public class GoogleUserInfo {
+public class GoogleUserInfoDTO {
     String id;
     String email;
     boolean verified_email;

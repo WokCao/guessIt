@@ -1,16 +1,16 @@
 package com.FoZ.guessIt.Controllers;
 
 import com.FoZ.guessIt.DTOs.EmailLoginDTO;
-import com.FoZ.guessIt.DTOs.GoogleUserInfo;
+import com.FoZ.guessIt.DTOs.FacebookUserInfoDTO;
+import com.FoZ.guessIt.DTOs.GoogleUserInfoDTO;
 import com.FoZ.guessIt.Enumerations.AuthProvider;
 import com.FoZ.guessIt.Models.UserModel;
 import com.FoZ.guessIt.Respositories.UserRepository;
-import com.FoZ.guessIt.Services.GoogleInfoService;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
+import com.FoZ.guessIt.Services.FacebookService;
+import com.FoZ.guessIt.Services.GoogleService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,14 +29,9 @@ public class AuthenticationController {
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
-    private GoogleInfoService googleInfoService;
-
-    @Value("${google.clientId}")
-    private String GOOGLE_CLIENT_ID;
-    @Value("${google.clientSecret}")
-    private String GOOGLE_CLIENT_SECRET;
-    @Value("${google.redirectUri}")
-    private String REDIRECT_URI;
+    private GoogleService googleService;
+    @Autowired
+    private FacebookService facebookService;
 
     @PostMapping("/email-login")
     public ResponseEntity<?> emailLogin(@RequestBody @Valid EmailLoginDTO emailLoginDTO) {
@@ -63,45 +57,52 @@ public class AuthenticationController {
             return ResponseEntity.badRequest().body("Auth code not provided");
         }
 
-        GoogleTokenResponse tokenResponse = null;
-        try {
-            tokenResponse = new GoogleAuthorizationCodeTokenRequest(
-                    new com.google.api.client.http.javanet.NetHttpTransport(),
-                    com.google.api.client.json.gson.GsonFactory.getDefaultInstance(),
-                    GOOGLE_CLIENT_ID,
-                    GOOGLE_CLIENT_SECRET,
-                    authCode,
-                    REDIRECT_URI
-            ).execute();
+        GoogleTokenResponse tokenResponse = googleService.getGoogleToken(authCode);
 
-            Optional<GoogleUserInfo> googleUserInfoWrapper = googleInfoService.getGoogleInfo(tokenResponse.getAccessToken());
-            if (googleUserInfoWrapper.isPresent()) {
-                GoogleUserInfo googleUserInfo = googleUserInfoWrapper.get();
-                Optional<UserModel> userModelWrapper = userRepository.findByProviderId(googleUserInfo.getId());
-                Optional<UserModel> userModelWrapper1 = userRepository.findByEmail(googleUserInfo.getEmail());
+        Optional<GoogleUserInfoDTO> googleUserInfoDTOWrapper = googleService.getGoogleInfo(tokenResponse.getAccessToken());
+        if (googleUserInfoDTOWrapper.isPresent()) {
+            GoogleUserInfoDTO googleUserInfoDTO = googleUserInfoDTOWrapper.get();
+            Optional<UserModel> userModelWrapper = userRepository.findByProviderId(googleUserInfoDTO.getId());
+            Optional<UserModel> userModelWrapper1 = userRepository.findByEmail(googleUserInfoDTO.getEmail());
 
-                if (userModelWrapper.isPresent()) {
-                    return ResponseEntity.ok(userModelWrapper.get());
-                } else if (userModelWrapper1.isPresent()) {
-                    return ResponseEntity.badRequest().body("Email %s is already in use".formatted(googleUserInfo.getEmail()));
-                } else {
-                    UserModel userModel = new UserModel();
-                    userModel.setEmail(googleUserInfo.getEmail());
-                    userModel.setRole("USER");
-                    userModel.setProvider(AuthProvider.GOOGLE);
-                    userModel.setProviderId(googleUserInfo.getId());
-                    userModel.setImageUrl(googleUserInfo.getPicture());
-                    userModel.setFullName(googleUserInfo.getName());
-                    userModel.setAccountVerified(true);
-                    userRepository.save(userModel);
-                    return ResponseEntity.ok(userModel);
-                }
+            if (userModelWrapper.isPresent()) {
+                return ResponseEntity.ok(userModelWrapper.get());
+            } else if (userModelWrapper1.isPresent()) {
+                return ResponseEntity.badRequest().body("Email %s is already in use".formatted(googleUserInfoDTO.getEmail()));
             } else {
-                return ResponseEntity.badRequest().body("Failed to fetch Google user info");
+                UserModel userModel = new UserModel(googleUserInfoDTO.getEmail(), googleUserInfoDTO.getName(), "USER", AuthProvider.GOOGLE, googleUserInfoDTO.getId(), googleUserInfoDTO.getPicture(), true);
+                userRepository.save(userModel);
+                return ResponseEntity.ok(userModel);
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } else {
+            return ResponseEntity.badRequest().body("Failed to fetch Google user info");
         }
     }
 
+    @PostMapping("/facebook")
+    public ResponseEntity<?> facebook(@RequestBody Map<String, String> body) {
+        String accessToken = body.get("accessToken");
+        if (accessToken == null) {
+            return ResponseEntity.badRequest().body("Access token not provided");
+        }
+
+        Optional<FacebookUserInfoDTO> facebookUserInfoWrapper = facebookService.getFacebookUserInfo(accessToken);
+        if (facebookUserInfoWrapper.isPresent()) {
+            FacebookUserInfoDTO facebookUserInfoDTO = facebookUserInfoWrapper.get();
+            Optional<UserModel> userModelWrapper = userRepository.findByProviderId(facebookUserInfoDTO.getId());
+            Optional<UserModel> userModelWrapper1 = userRepository.findByEmail(facebookUserInfoDTO.getEmail());
+
+            if (userModelWrapper.isPresent()) {
+                return ResponseEntity.ok(userModelWrapper.get());
+            } else if (userModelWrapper1.isPresent()) {
+                return ResponseEntity.badRequest().body("Email %s is already in use".formatted(facebookUserInfoDTO.getEmail()));
+            } else {
+                UserModel userModel = new UserModel(facebookUserInfoDTO.getEmail(), facebookUserInfoDTO.getName(), "USER", AuthProvider.FACEBOOK, facebookUserInfoDTO.getId(), facebookUserInfoDTO.getPicture().getPictureData().getUrl(), true);
+                userRepository.save(userModel);
+                return ResponseEntity.ok(userModel);
+            }
+        } else {
+            return ResponseEntity.badRequest().body("Failed to fetch Facebook user info");
+        }
+    }
 }

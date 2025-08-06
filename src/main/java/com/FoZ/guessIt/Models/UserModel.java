@@ -13,11 +13,22 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 @Getter @Setter
 public class UserModel {
+    public UserModel() {}
+    public UserModel(String email, String fullName, String role, AuthProvider provider, String providerId, String imageUrl, boolean accountVerified) {
+        this.email = email;
+        this.fullName = fullName;
+        this.role = role;
+        this.provider = provider;
+        this.providerId = providerId;
+        this.imageUrl = imageUrl;
+        this.accountVerified = accountVerified;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String email;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
@@ -35,7 +46,7 @@ public class UserModel {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String providerId;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @JsonIgnore
