@@ -29,8 +29,10 @@ public class UserModel {
     private String role;
 
     @Enumerated(EnumType.STRING)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private AuthProvider provider;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String providerId;
 
     @Column(name = "image_url")
