@@ -2,6 +2,7 @@ package com.FoZ.guessIt.Configuration;
 
 import com.FoZ.guessIt.ExceptionHandling.CustomizedAccessDeniedHandler;
 import com.FoZ.guessIt.ExceptionHandling.CustomizedBasicAuthenticationEntryPoint;
+import com.FoZ.guessIt.Filters.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -44,6 +46,7 @@ public class ProdSecurityConfig {
                                 return config;
                             }
                         }))
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/api/v1/authentication/**", "/api/v1/registration/**").permitAll()
                         .requestMatchers("/api/v1/dictionary/**").authenticated());
@@ -63,5 +66,10 @@ public class ProdSecurityConfig {
     @Bean
     public CompromisedPasswordChecker compromisedPasswordChecker() {
         return new HaveIBeenPwnedRestApiPasswordChecker();
+    }
+
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter();
     }
 }

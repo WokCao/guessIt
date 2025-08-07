@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Random;
 
 @RestController
-@RequestMapping("/api/v1/register")
+@RequestMapping("/api/v1/registration")
 public class RegisterController {
     @Autowired
     private MailService mailService;
