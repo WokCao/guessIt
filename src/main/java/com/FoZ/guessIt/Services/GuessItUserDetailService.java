@@ -1,5 +1,6 @@
 package com.FoZ.guessIt.Services;
 
+import com.FoZ.guessIt.Enumerations.AuthProvider;
 import com.FoZ.guessIt.Models.UserModel;
 import com.FoZ.guessIt.Respositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,10 @@ public class GuessItUserDetailService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserModel user = userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole()));
-        return new User(user.getEmail(), user.getPassword(), authorities);
+        String password = user.getPassword();
+        if (user.getProvider().equals(AuthProvider.GOOGLE) || user.getProvider().equals(AuthProvider.FACEBOOK)) {
+            password = "";
+        }
+        return new User(user.getEmail(), password, authorities);
     }
 }

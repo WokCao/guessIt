@@ -7,7 +7,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeToken
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
@@ -28,31 +27,18 @@ public class GoogleService {
     private String GOOGLE_CLIENT_SECRET;
     @Value("${google.redirectUri}")
     private String REDIRECT_URI;
+    @Autowired
+    private ExternalService externalService;
 
     public Optional<GoogleUserInfoDTO> getGoogleInfo(String accessToken) {
-        String userInfoEndpoint = "https://www.googleapis.com/oauth2/v2/userinfo";
-
         try {
-            // Create request headers
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(accessToken);
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            // Make the API call
-            ResponseEntity<String> response = restTemplate.exchange(
-                    userInfoEndpoint,
-                    HttpMethod.GET,
-                    new HttpEntity<>(headers),
-                    String.class
-            );
-
-            // Verify successful response
-            if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
-                throw new RuntimeException("Google API returned non-success status: " + response.getStatusCode());
+            String responseBody = externalService.getGoogleInfo(accessToken);
+            if (responseBody == null) {
+                return Optional.empty();
             }
 
             // Parse JSON response
-            GoogleUserInfoDTO googleUserInfoDTO = objectMapper.readValue(response.getBody(), GoogleUserInfoDTO.class);
+            GoogleUserInfoDTO googleUserInfoDTO = objectMapper.readValue(responseBody, GoogleUserInfoDTO.class);
             return Optional.ofNullable(googleUserInfoDTO);
 
         } catch (HttpClientErrorException e) {
