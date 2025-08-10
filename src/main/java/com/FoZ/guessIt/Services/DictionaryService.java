@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 public class DictionaryService {
@@ -22,7 +23,7 @@ public class DictionaryService {
 
     public Optional<DictionaryEntry> getWordDetails(String query) {
         Optional<DictionaryEntry> existingEntry = dictionaryRepository.findByWord(query.toLowerCase());
-        
+
         /* If the word already exists in the database, return it */
         if (existingEntry.isPresent()) {
             return existingEntry;
@@ -61,9 +62,25 @@ public class DictionaryService {
             dictionaryRepository.save(entry);
             
             return Optional.of(entry);
+        } else {
+            Optional<DictionaryEntry> incompleteEntryWrapper = externalService.getIncompleteDictionaryEntry(query);
+            if (incompleteEntryWrapper.isPresent()) {
+                try {
+                    DictionaryEntry incompleteEntry = incompleteEntryWrapper.get();
+                    dictionaryRepository.save(incompleteEntry);
+                    return Optional.of(incompleteEntry);
+                } catch (Exception e) {
+                    System.err.println("Error saving incomplete entry: " + e.getMessage());
+                }
+            }
         }
-        
         return Optional.empty();
+    }
+
+    public List<String> getSuggestions(String query, Long quantity) {
+        Optional<SynAntDTO[]> suggestions = externalService.getSuggestions(query, quantity);
+
+        return suggestions.map(synAntDTOS -> Stream.of(synAntDTOS).map(SynAntDTO::getWord).toList()).orElseGet(List::of);
     }
 
     private DictionaryEntry getDictionaryEntry(DictionaryEntry[] externalData) {
