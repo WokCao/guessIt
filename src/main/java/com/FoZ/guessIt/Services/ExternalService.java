@@ -104,6 +104,10 @@ public class ExternalService {
                     break;
             }
 
+            if (suggestion.getDefs() == null) {
+                return null;
+            }
+
             for (String def : suggestion.getDefs()) {
                 Definition definition = new Definition();
                 if (def.contains("obsolete")) {
