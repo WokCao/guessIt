@@ -5,7 +5,7 @@ import com.FoZ.guessIt.Enumerations.Quantity;
 import com.FoZ.guessIt.Enumerations.RelationType;
 import com.FoZ.guessIt.Models.DictionaryEntry;
 import com.FoZ.guessIt.Models.Meaning;
-import com.FoZ.guessIt.Respositories.DictionaryRepository;
+import com.FoZ.guessIt.Repositories.DictionaryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
