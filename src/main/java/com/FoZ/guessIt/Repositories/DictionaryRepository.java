@@ -1,4 +1,4 @@
-package com.FoZ.guessIt.Respositories;
+package com.FoZ.guessIt.Repositories;
 
 import com.FoZ.guessIt.Models.DictionaryEntry;
 import org.springframework.data.jpa.repository.JpaRepository;

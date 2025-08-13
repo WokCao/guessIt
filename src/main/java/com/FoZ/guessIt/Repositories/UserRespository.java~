@@ -1,0 +1,9 @@
+package com.FoZ.guessIt.Respositories;
+
+import com.FoZ.guessIt.Models.UserModel;
+import org.springframework.data.repository.CrudRepository;
+
+@Respository
+public interface UserRespository extends CrudRepository<UserModel, Long> {
+
+}

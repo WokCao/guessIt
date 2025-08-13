@@ -2,7 +2,7 @@ package com.FoZ.guessIt.Services;
 
 import com.FoZ.guessIt.Enumerations.AuthProvider;
 import com.FoZ.guessIt.Models.UserModel;
-import com.FoZ.guessIt.Respositories.UserRepository;
+import com.FoZ.guessIt.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
