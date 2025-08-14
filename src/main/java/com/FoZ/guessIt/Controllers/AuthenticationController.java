@@ -3,11 +3,7 @@ package com.FoZ.guessIt.Controllers;
 import com.FoZ.guessIt.DTOs.EmailLoginDTO;
 import com.FoZ.guessIt.DTOs.LoginResponseDTO;
 import com.FoZ.guessIt.Models.UserModel;
-import com.FoZ.guessIt.Repositories.UserRepository;
 import com.FoZ.guessIt.Services.AuthenticationService;
-import com.FoZ.guessIt.Services.FacebookService;
-import com.FoZ.guessIt.Services.GoogleService;
-import com.FoZ.guessIt.Services.JwtService;
 import jakarta.validation.Valid;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +20,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/authentication")
 public class AuthenticationController {
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private GoogleService googleService;
-    @Autowired
-    private FacebookService facebookService;
-    @Autowired
-    private JwtService jwtService;
     @Autowired
     private AuthenticationService authenticationService;
 

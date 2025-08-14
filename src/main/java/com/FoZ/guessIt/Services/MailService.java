@@ -16,7 +16,7 @@ public class MailService {
         this.mailSender = mailSender;
     }
 
-    public void sendVerificationCode(String to, String code) {
+    public void sendVerificationCode(String to, String code) throws RuntimeException {
         String subject = "Your Verification Code";
         String content = "<html>" +
                 "<body>" +
