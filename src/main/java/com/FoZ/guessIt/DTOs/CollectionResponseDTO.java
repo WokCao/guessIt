@@ -3,7 +3,6 @@ package com.FoZ.guessIt.DTOs;
 import com.FoZ.guessIt.Enumerations.Difficulty;
 import com.FoZ.guessIt.Enumerations.Visibility;
 import com.FoZ.guessIt.Models.CollectionModel;
-import com.FoZ.guessIt.Models.CollectionWord;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,7 +24,7 @@ public class CollectionResponseDTO {
     private Long joinedCollection;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<CollectionWord> words;
+    private List<CollectionWordDTO> words;
     private UserDTO user;
 
     public CollectionResponseDTO(CollectionModel collection) {
@@ -39,7 +38,10 @@ public class CollectionResponseDTO {
         this.joinedCollection = collection.getJoinedCollection();
         this.createdAt = collection.getCreatedAt();
         this.updatedAt = collection.getUpdatedAt();
-        this.words = collection.getWords();
+        this.words = collection.getWords()
+                .stream()
+                .map(CollectionWordDTO::new)
+                .toList();
         this.user = new UserDTO(collection.getUserModel());
     }
 }

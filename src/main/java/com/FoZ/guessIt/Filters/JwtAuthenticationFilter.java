@@ -1,6 +1,6 @@
 package com.FoZ.guessIt.Filters;
 
-import com.FoZ.guessIt.Services.GuessItUserDetailService;
+import com.FoZ.guessIt.Services.GuessItUserDetailsService;
 import com.FoZ.guessIt.Services.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,7 +20,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired private JwtService jwtService;
-    @Autowired private GuessItUserDetailService guessItUserDetailService;
+    @Autowired private GuessItUserDetailsService guessItUserDetailsService;
 
     /**
      * @param request
@@ -36,8 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (StringUtils.hasText(jwt) && jwtService.validateToken(jwt)) {
                 String username = jwtService.getUsernameFromJWT(jwt);
-
-                UserDetails userDetails = guessItUserDetailService.loadUserByUsername(username);
+                UserDetails userDetails = guessItUserDetailsService.loadUserByUsername(username);
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(

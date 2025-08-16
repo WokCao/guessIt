@@ -36,10 +36,11 @@ public class CollectionModel {
     @Enumerated(EnumType.STRING)
     private Visibility mode = Visibility.PRIVATE;
 
-    private Long likes = 0L;
+    @Column(columnDefinition = "BIGINT DEFAULT 0")
+    private Long likes;
 
-    @Column(name = "joined_collection")
-    private Long joinedCollection = 0L;
+    @Column(name = "joined_collection", columnDefinition = "BIGINT DEFAULT 0")
+    private Long joinedCollection;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

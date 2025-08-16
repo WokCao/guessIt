@@ -48,8 +48,8 @@ public class ProdSecurityConfig {
                         }))
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/api/v1/authentication/**", "/api/v1/registration/**").permitAll()
-                        .requestMatchers("/api/v1/dictionary/**", "/api/v1/collection/**").authenticated());
+                        .requestMatchers("/api/v1/authentication/**", "/api/v1/registration/**", "/api/v1/dictionary/**").permitAll()
+                        .requestMatchers("/api/v1/collections/**").authenticated());
         http.formLogin(AbstractHttpConfigurer::disable);
         http.httpBasic((hbc) -> hbc
                 .authenticationEntryPoint(new CustomizedBasicAuthenticationEntryPoint()));

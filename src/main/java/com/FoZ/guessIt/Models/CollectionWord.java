@@ -25,11 +25,11 @@ public class CollectionWord {
     @JoinColumn(name = "dictionary_entry_id", nullable = false)
     private DictionaryEntry dictionaryEntry;
 
-    @Column(name = "lastest_accuracy")
-    private int lastestAccuracy = 0;
+    @Column(name = "lastest_accuracy", columnDefinition = "INT DEFAULT 0")
+    private int lastestAccuracy;
 
-    @Column(name = "star_marked")
-    private boolean starMarked = false;
+    @Column(name = "star_marked", columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean starMarked;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -39,6 +39,7 @@ public class CollectionWord {
 
     @PrePersist
     protected void onCreate() {
+        createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
 

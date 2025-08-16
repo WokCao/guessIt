@@ -5,6 +5,7 @@ import com.FoZ.guessIt.DTOs.LoginResponseDTO;
 import com.FoZ.guessIt.Models.UserModel;
 import com.FoZ.guessIt.Services.AuthenticationService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/authentication")
 public class AuthenticationController {
@@ -43,11 +45,13 @@ public class AuthenticationController {
         }
          try {
              UserModel userModel = authenticationService.validateThirdPartyUser(authCode, null);
-             String jwt = authenticationService.authenticateWithThirdParty(authCode, null);
+             log.info("User: {}", userModel);
+             String jwt = authenticationService.authenticateWithThirdParty(userModel);
              return ResponseEntity.ok(new LoginResponseDTO(jwt, userModel));
          } catch (BadCredentialsException | BadRequestException e) {
              return ResponseEntity.badRequest().body(e.getMessage());
          } catch (Exception e) {
+             System.out.println(e.getMessage());
              return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing request");
          }
     }
@@ -61,11 +65,26 @@ public class AuthenticationController {
 
         try {
             UserModel userModel = authenticationService.validateThirdPartyUser(null, accessToken);
-            String jwt = authenticationService.authenticateWithThirdParty(null, accessToken);
+            String jwt = authenticationService.authenticateWithThirdParty(userModel);
             return ResponseEntity.ok(new LoginResponseDTO(jwt, userModel));
         } catch (BadCredentialsException | BadRequestException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing request");
+        }
+    }
+
+    @PostMapping("/validate")
+    public ResponseEntity<?> validate(@RequestBody Map<String, String> body) {
+        String jwt = body.get("accessToken");
+        if (jwt == null) {
+            return ResponseEntity.badRequest().body("JWT not provided");
+        }
+
+        try {
+            return ResponseEntity.ok(authenticationService.validateToken(jwt));
+        } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing request");
         }
     }

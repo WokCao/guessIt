@@ -20,13 +20,7 @@ public class DictionaryController {
     private DictionaryService dictionaryService;
 
     @GetMapping("/{query}")
-    public ResponseEntity<?> getQuery(@PathVariable("query") String query, @RequestHeader("Authorization") String token) {
-        String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
-
-        if (!jwtService.validateToken(jwtToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-        }
-
+    public ResponseEntity<?> getQuery(@PathVariable("query") String query) {
         try {
             Optional<DictionaryEntry> dictionaryEntry = dictionaryService.getWordDetails(query);
             return dictionaryEntry.map(entry -> ResponseEntity.ok(new DictionaryEntryResponseDTO(true, entry, null))).orElseGet(() -> ResponseEntity.ok(new DictionaryEntryResponseDTO(false, null, dictionaryService.getSuggestions(query, 10L))));

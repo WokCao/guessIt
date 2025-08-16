@@ -8,6 +8,7 @@ import com.FoZ.guessIt.Models.GuessItUserDetails;
 import com.FoZ.guessIt.Models.UserModel;
 import com.FoZ.guessIt.Repositories.UserRepository;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class AuthenticationService {
     @Autowired
@@ -65,8 +67,12 @@ public class AuthenticationService {
         if (authCode != null) {
             GoogleTokenResponse tokenResponse = googleService.getGoogleToken(authCode);
 
+            log.info("Google token response: {}", tokenResponse);
+
             googleUserInfoDTO = googleService.getGoogleInfo(tokenResponse.getAccessToken())
                     .orElseThrow(() -> new BadCredentialsException("Google user info not found"));
+
+            log.info("Google user info: {}", googleUserInfoDTO);
 
             userModelByProviderIdWrapper = userRepository.findByProviderId(googleUserInfoDTO.getId());
             userModelByEmailWrapper = userRepository.findByEmail(googleUserInfoDTO.getEmail());
@@ -92,18 +98,20 @@ public class AuthenticationService {
             returnUserModel = userRepository.save(userModel);
         }
 
+        log.info("Return user model: {}", returnUserModel);
+
         return returnUserModel;
     }
 
-    public String authenticateWithThirdParty(String authCode, String accessToken) throws Exception {
-        UserModel returnUserModel = validateThirdPartyUser(authCode, accessToken);
-
+    public String authenticateWithThirdParty(UserModel userModel) throws Exception {
         GuessItUserDetails principal = new GuessItUserDetails(
-                returnUserModel.getId(),
-                returnUserModel.getEmail(),
+                userModel.getId(),
+                userModel.getEmail(),
                 "",
-                List.of(new SimpleGrantedAuthority(returnUserModel.getRole()))
+                List.of(new SimpleGrantedAuthority(userModel.getRole()))
         );
+
+        log.info("Principal: {}", principal);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 principal,
@@ -111,6 +119,12 @@ public class AuthenticationService {
                 principal.getAuthorities()
         );
 
+        log.info("Authentication: {}", authentication);
+
         return jwtService.generateToken(authentication);
+    }
+
+    public boolean validateToken(String token) {
+        return jwtService.validateToken(token);
     }
 }
